@@ -1,50 +1,65 @@
 #pragma once
 
-#include <cstddef>
+#include <vector>
 
 namespace laplace {
 
 /**
- * @brief Stores the basic geometry of a 2D Cartesian grid.
- *
- * This class will later provide the grid metadata needed by the solver.
+ * @brief Dense 2D grid of double values stored in row-major order.
  */
 class Grid {
 public:
     /**
-     * @brief Constructs a grid description.
-     * @param nx Number of grid points in the x direction.
-     * @param ny Number of grid points in the y direction.
-     * @param lx Domain length in the x direction.
-     * @param ly Domain length in the y direction.
+     * @brief Construct a grid with the given number of rows and columns.
+     *
+     * All entries are initialized to initial_value.
      */
-    Grid(std::size_t nx = 0, std::size_t ny = 0, double lx = 1.0, double ly = 1.0);
+    Grid(int rows, int cols, double initial_value = 0.0);
 
     /**
-     * @brief Returns the number of grid points in the x direction.
+     * @brief Return a modifiable reference to entry (i, j).
      */
-    std::size_t nx() const;
+    double& operator()(int i, int j);
 
     /**
-     * @brief Returns the number of grid points in the y direction.
+     * @brief Return the value of entry (i, j).
      */
-    std::size_t ny() const;
+    double operator()(int i, int j) const;
 
     /**
-     * @brief Returns the domain length in the x direction.
+     * @brief Return the number of rows.
      */
-    double lx() const;
+    int rows() const;
 
     /**
-     * @brief Returns the domain length in the y direction.
+     * @brief Return the number of columns.
      */
-    double ly() const;
+    int cols() const;
+
+    /**
+     * @brief Fill the whole grid with a constant value.
+     */
+    void fill(double value);
+
+    /**
+     * @brief Return a constant reference to the underlying storage.
+     */
+    const std::vector<double>& data() const;
+
+    /**
+     * @brief Return a modifiable reference to the underlying storage.
+     */
+    std::vector<double>& data();
 
 private:
-    std::size_t nx_;
-    std::size_t ny_;
-    double lx_;
-    double ly_;
+    int rows_;
+    int cols_;
+    std::vector<double> data_;
+
+    /**
+     * @brief Convert 2D indices to the corresponding row-major 1D index.
+     */
+    int index(int i, int j) const;
 };
 
 }  // namespace laplace
