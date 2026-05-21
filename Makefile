@@ -10,7 +10,7 @@ COMMON_SOURCES := \
 	src/Error.cpp
 
 COMMON_OBJECTS := $(COMMON_SOURCES:.cpp=.o)
-PARALLEL_OBJECTS := $(COMMON_OBJECTS) src/main.o
+PARALLEL_OBJECTS := $(COMMON_OBJECTS) src/ParallelJacobiSolver.o src/main.o
 SERIAL_OBJECTS := $(COMMON_OBJECTS) src/serial_main.o
 
 TARGETS := laplace_solver laplace_serial

@@ -7,7 +7,8 @@ namespace laplace {
 /**
  * @brief Describes a simple row-wise domain decomposition.
  *
- * This class will later store the local row range handled by each MPI rank.
+ * The local range is represented as [local_begin, local_end), using global
+ * zero-based row indices.
  */
 class RowDecomposition {
 public:
@@ -34,10 +35,17 @@ public:
      */
     std::size_t local_end() const;
 
+    /**
+     * @brief Returns the number of rows owned by this rank.
+     */
+    std::size_t local_rows() const;
+
 private:
     std::size_t global_rows_;
     int rank_;
     int size_;
+    std::size_t local_begin_;
+    std::size_t local_end_;
 };
 
 }  // namespace laplace

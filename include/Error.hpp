@@ -1,16 +1,14 @@
 #pragma once
 
-#include <vector>
+#include "Functions.hpp"
 
 namespace laplace {
 
 class Grid;
 
 /**
- * @brief Computes simple error measures for the numerical solution.
- *
- * The implementation will later compare the computed field with a reference.
+ * @brief Computes the discrete L2 error against the exact manufactured solution.
  */
-double compute_max_error(const Grid& grid, const std::vector<double>& values);
+double compute_l2_error(const Grid& solution, ProblemCase problem_case = ProblemCase::Sine);
 
 }  // namespace laplace
