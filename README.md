@@ -1,68 +1,112 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/tKSbaXxd)
-# Challenge 3
 
-This repository contains the initial setup for Challenge 3 of the course project: a matrix-free parallel solver for the 2D Laplace equation.
+# Challenge 3 — Matrix-free parallel solver for the Laplace equation
 
-## Goal
+This repository contains a C++17 implementation of a matrix-free Jacobi solver for the two-dimensional Laplace/Poisson problem on the unit square
 
-The planned objective is to implement a Jacobi iterative solver for the 2D Laplace equation on a structured grid, keeping the project simple and readable for an academic setting.
+\[
+-\Delta u = f \quad \text{in } \Omega = (0,1)^2
+\]
 
-## Planned approach
+with Dirichlet boundary conditions. The project includes both a serial solver and a parallel MPI solver based on row-wise domain decomposition, with OpenMP directives on local compute loops.
 
-- Discretization: 2D Cartesian grid
-- Solver: matrix-free Jacobi iteration
-- Parallelism: MPI row decomposition between processes
-- Shared-memory acceleration: OpenMP loops inside each MPI rank
-- Output: VTK files for visualization in ParaView
+## Implemented features
+
+- Matrix-free Jacobi iteration on a structured Cartesian grid
+- Serial solver executable: `laplace_serial`
+- MPI parallel solver executable: `laplace_solver`
+- Row-wise MPI domain decomposition with balanced row distribution
+- Ghost row exchange between neighboring MPI ranks
+- Global convergence check based on `MPI_Allreduce` of the global increment norm
+- OpenMP directives on local update and error-computation loops
+- Manufactured sine test case
+- Manufactured polynomial case with non-homogeneous Dirichlet boundary conditions
+- Discrete L2 error computation against the exact solution
+- VTK output for ParaView-compatible visualization
+- Simple command-line interface for grid size, tolerance, iteration count, problem case, and output file
+
+## Manufactured problems
+
+The main verification case is the sine manufactured solution:
+
+\[
+f(x,y) = 8\pi^2 \sin(2\pi x)\sin(2\pi y)
+\]
+
+\[
+u(x,y) = \sin(2\pi x)\sin(2\pi y)
+\]
+
+The code also includes a polynomial manufactured case to exercise non-homogeneous Dirichlet boundary conditions.
 
 ## Repository structure
 
 ```text
-include/      Header files for the main project components
-src/          Source files and executable entry points
-test/         Future tests
-test/data/    Input data for tests
-output/       Generated output files
+include/               Header files for the main project components
+src/                   Source files and executable entry points
+test/                  Placeholder directory for future tests
+test/data/             Placeholder input data directory for tests
+output/                Output directory for generated files
+Makefile               Build rules for the serial and MPI executables
+Challenge25-26-3.pdf   Assignment specification
 ```
 
-## Build
+## Build instructions
 
-The project currently uses `mpic++` as compiler so that MPI support can be added later without changing the basic build flow.
+The project is built with `mpic++` and uses C++17.
 
 ```bash
+make clean
 make
 ```
+
+This produces:
+
+- `laplace_serial`
+- `laplace_solver`
 
 Optional targets:
 
 ```bash
-make parallel
 make serial
-make clean
+make parallel
 ```
 
-## Run
+## Run instructions
+
+Serial help:
 
 ```bash
-./laplace_solver
-./laplace_serial
+./laplace_serial --help
 ```
 
-Use `--help` with either executable to print the current skeleton help message.
+MPI help:
+
+```bash
+mpirun -np 2 ./laplace_solver --help
+```
+
+Example serial run:
+
+```bash
+./laplace_serial --n 32 --max-iter 500 --tol 1e-6 --case sine
+```
+
+Example MPI run:
+
+```bash
+mpirun -np 4 ./laplace_solver --n 32 --max-iter 500 --tol 1e-6 --case sine
+```
+
+Example VTK output:
+
+```bash
+./laplace_serial --n 32 --max-iter 500 --tol 1e-6 --case sine --output output/serial.vtk
+mpirun -np 4 ./laplace_solver --n 32 --max-iter 500 --tol 1e-6 --case sine --output output/parallel.vtk
+```
 
 ## Current status
 
-Step 0 only:
+The current code base already includes the core serial and MPI Jacobi solvers, manufactured test cases, error computation, OpenMP local parallelism, and VTK output.
 
-- project structure created
-- placeholder headers and source files added
-- build system added
-- solver logic not implemented yet
-
-Not implemented yet:
-
-- Jacobi iteration
-- MPI communication
-- OpenMP parallel loops
-- VTK output logic
-- error computation
+The project is not finished yet. In particular, the repository does not yet include a dedicated testing suite, benchmark scripts, or a complete performance study. Those parts can be added later as separate steps.
