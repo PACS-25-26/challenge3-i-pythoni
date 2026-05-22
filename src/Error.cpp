@@ -29,7 +29,7 @@ double compute_l2_error(const Grid& solution, ProblemCase problem_case) {
         }
     }
 
-    return std::sqrt(h * error_squared);
+    return h * std::sqrt(error_squared);
 }
 
 }  // namespace laplace

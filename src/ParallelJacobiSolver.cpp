@@ -82,7 +82,7 @@ double compute_global_l2_error(const std::vector<double>& values, int n, Problem
         }
     }
 
-    return std::sqrt(h * error_squared);
+    return h * std::sqrt(error_squared);
 }
 
 std::vector<double> gather_solution(const Grid& local_values,
@@ -176,16 +176,6 @@ ParallelJacobiResult solve_parallel_jacobi(const ParallelJacobiConfig& config,
             }
         }
 
-        const double local_increment = std::sqrt(h * local_increment_squared);
-        const int local_converged = local_increment < config.tolerance ? 1 : 0;
-        int all_converged = 0;
-        MPI_Allreduce(&local_converged,
-                      &all_converged,
-                      1,
-                      MPI_INT,
-                      MPI_MIN,
-                      communicator);
-
         double global_increment_squared = 0.0;
         MPI_Allreduce(&local_increment_squared,
                       &global_increment_squared,
@@ -195,8 +185,8 @@ ParallelJacobiResult solve_parallel_jacobi(const ParallelJacobiConfig& config,
                       communicator);
 
         result.iterations = iteration;
-        result.final_increment = std::sqrt(h * global_increment_squared);
-        result.converged = all_converged == 1;
+        result.final_increment = h * std::sqrt(global_increment_squared);
+        result.converged = result.final_increment < config.tolerance;
         if (result.converged) {
             break;
         }

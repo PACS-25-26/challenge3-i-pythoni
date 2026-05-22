@@ -66,7 +66,7 @@ JacobiResult JacobiSolver::solve_serial(Grid& solution, ProblemCase problem_case
         }
 
         result.iterations = iteration;
-        result.final_increment = std::sqrt(h * increment_squared);
+        result.final_increment = h * std::sqrt(increment_squared);
         if (result.final_increment < tolerance_) {
             result.converged = true;
             break;
