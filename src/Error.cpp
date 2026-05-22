@@ -20,6 +20,7 @@ double compute_l2_error(const Grid& solution, ProblemCase problem_case) {
     const double h = 1.0 / static_cast<double>(n - 1);
     double error_squared = 0.0;
 
+#pragma omp parallel for reduction(+ : error_squared)
     for (int i = 0; i < n; ++i) {
         const double y = static_cast<double>(i) * h;
         for (int j = 0; j < n; ++j) {

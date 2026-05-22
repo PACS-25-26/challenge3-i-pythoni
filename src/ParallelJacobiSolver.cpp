@@ -72,6 +72,7 @@ double compute_global_l2_error(const std::vector<double>& values, int n, Problem
     const double h = 1.0 / static_cast<double>(n - 1);
     double error_squared = 0.0;
 
+#pragma omp parallel for reduction(+ : error_squared)
     for (int i = 0; i < n; ++i) {
         const double y = static_cast<double>(i) * h;
         for (int j = 0; j < n; ++j) {
@@ -156,6 +157,7 @@ ParallelJacobiResult solve_parallel_jacobi(const ParallelJacobiConfig& config,
 
         double local_increment_squared = 0.0;
 
+#pragma omp parallel for reduction(+ : local_increment_squared)
         for (int local_i = 1; local_i <= local_rows; ++local_i) {
             const int global_i = static_cast<int>(decomposition.local_begin()) + local_i - 1;
             if (global_i == 0 || global_i == n - 1) {

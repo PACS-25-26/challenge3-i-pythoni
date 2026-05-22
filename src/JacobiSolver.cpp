@@ -51,6 +51,7 @@ JacobiResult JacobiSolver::solve_serial(Grid& solution, ProblemCase problem_case
     for (int iteration = 1; iteration <= max_iterations_; ++iteration) {
         double increment_squared = 0.0;
 
+#pragma omp parallel for reduction(+ : increment_squared)
         for (int i = 1; i < n - 1; ++i) {
             const double y = static_cast<double>(i) * h;
             for (int j = 1; j < n - 1; ++j) {
