@@ -176,6 +176,16 @@ ParallelJacobiResult solve_parallel_jacobi(const ParallelJacobiConfig& config,
             }
         }
 
+        const double local_increment = std::sqrt(h * local_increment_squared);
+        const int local_converged = local_increment < config.tolerance ? 1 : 0;
+        int all_converged = 0;
+        MPI_Allreduce(&local_converged,
+                      &all_converged,
+                      1,
+                      MPI_INT,
+                      MPI_MIN,
+                      communicator);
+
         double global_increment_squared = 0.0;
         MPI_Allreduce(&local_increment_squared,
                       &global_increment_squared,
@@ -186,7 +196,7 @@ ParallelJacobiResult solve_parallel_jacobi(const ParallelJacobiConfig& config,
 
         result.iterations = iteration;
         result.final_increment = std::sqrt(h * global_increment_squared);
-        result.converged = result.final_increment < config.tolerance;
+        result.converged = all_converged == 1;
         if (result.converged) {
             break;
         }
