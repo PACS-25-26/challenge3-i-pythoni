@@ -22,8 +22,9 @@ struct Options {
 void print_help(const std::string& program_name) {
     std::cout << "Usage: " << program_name
               << " [--n N] [--tol TOL] [--max-iter K] [--case sine|poly]"
+              << " [--solver jacobi|schwarz] [--local-iter K]"
               << " [--output FILE] [--print-decomposition]\n"
-              << "MPI Jacobi solver for the 2D Laplace problem.\n";
+              << "Hybrid MPI/OpenMP solver for the 2D Laplace problem.\n";
 }
 
 Options parse_options(int argc, char* argv[]) {
@@ -39,6 +40,10 @@ Options parse_options(int argc, char* argv[]) {
             options.solver.max_iterations = std::atoi(argv[++arg]);
         } else if (name == "--case" && arg + 1 < argc) {
             options.solver.problem_case = laplace::parse_problem_case(argv[++arg]);
+        } else if (name == "--solver" && arg + 1 < argc) {
+            options.solver.local_solver = laplace::parse_local_solver(argv[++arg]);
+        } else if (name == "--local-iter" && arg + 1 < argc) {
+            options.solver.local_iterations = std::atoi(argv[++arg]);
         } else if (name == "--output" && arg + 1 < argc) {
             options.output_filename = argv[++arg];
         } else if (name == "--print-decomposition") {
@@ -56,6 +61,9 @@ Options parse_options(int argc, char* argv[]) {
     }
     if (options.solver.tolerance < 0.0) {
         throw std::invalid_argument("Tolerance must be non-negative.");
+    }
+    if (options.solver.local_iterations <= 0) {
+        throw std::invalid_argument("Local iterations must be positive.");
     }
 
     return options;
@@ -122,6 +130,8 @@ int main(int argc, char* argv[]) {
             std::cout << std::setprecision(10)
                       << "n: " << options.solver.n << '\n'
                       << "processes: " << size << '\n'
+                      << "solver: " << laplace::local_solver_name(options.solver.local_solver) << '\n'
+                      << "local_iterations: " << options.solver.local_iterations << '\n'
                       << "iterations: " << result.iterations << '\n'
                       << "converged: " << (result.converged ? "yes" : "no") << '\n'
                       << "final_increment: " << result.final_increment << '\n'

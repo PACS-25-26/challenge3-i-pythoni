@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Functions.hpp"
+#include "LocalSolver.hpp"
 #include "RowDecomposition.hpp"
 
 #ifndef OMPI_SKIP_MPICXX
@@ -20,6 +21,8 @@ struct ParallelJacobiConfig {
     int max_iterations = 10000;
     double tolerance = 1.0e-6;
     ProblemCase problem_case = ProblemCase::Sine;
+    LocalSolver local_solver = LocalSolver::PointJacobi;
+    int local_iterations = 10;
 };
 
 /**

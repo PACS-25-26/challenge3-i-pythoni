@@ -1,17 +1,36 @@
 #include "Grid.hpp"
 
-int main() {
-    laplace::Grid default_grid;
-    if (default_grid.nx() != 0) return 1;
-    if (default_grid.ny() != 0) return 1;
-    if (default_grid.lx() != 1.0) return 1;
-    if (default_grid.ly() != 1.0) return 1;
+#include <stdexcept>
 
-    laplace::Grid grid(5, 7, 2.0, 3.0);
-    if (grid.nx() != 5) return 1;
-    if (grid.ny() != 7) return 1;
-    if (grid.lx() != 2.0) return 1;
-    if (grid.ly() != 3.0) return 1;
+int main() {
+    laplace::Grid grid(2, 3, 1.5);
+    if (grid.rows() != 2) return 1;
+    if (grid.cols() != 3) return 1;
+    if (grid.data().size() != 6) return 1;
+
+    for (double value : grid.data()) {
+        if (value != 1.5) return 1;
+    }
+
+    grid(1, 2) = 4.0;
+    if (grid(1, 2) != 4.0) return 1;
+    if (grid.data()[5] != 4.0) return 1;
+
+    grid.fill(-2.0);
+    if (grid(0, 0) != -2.0) return 1;
+    if (grid(1, 2) != -2.0) return 1;
+
+    try {
+        laplace::Grid invalid_grid(-1, 3);
+        return 1;
+    } catch (const std::invalid_argument&) {
+    }
+
+    try {
+        (void)grid(2, 0);
+        return 1;
+    } catch (const std::out_of_range&) {
+    }
 
     return 0;
 }

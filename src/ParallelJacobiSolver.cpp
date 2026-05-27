@@ -121,6 +121,58 @@ std::vector<double> gather_solution(const Grid& local_values,
     return global_values;
 }
 
+double sweep_owned_rows(const Grid& old_values,
+                        Grid& new_values,
+                        const RowDecomposition& decomposition,
+                        int n,
+                        double h_squared,
+                        ProblemCase problem_case) {
+    double increment_squared = 0.0;
+
+#pragma omp parallel for reduction(+ : increment_squared)
+    for (int local_i = 1; local_i <= static_cast<int>(decomposition.local_rows()); ++local_i) {
+        const int global_i = static_cast<int>(decomposition.local_begin()) + local_i - 1;
+        if (global_i == 0 || global_i == n - 1) {
+            continue;
+        }
+
+        const double h = 1.0 / static_cast<double>(n - 1);
+        const double y = static_cast<double>(global_i) * h;
+        for (int j = 1; j < n - 1; ++j) {
+            const double x = static_cast<double>(j) * h;
+            const double next_value =
+                0.25 * (old_values(local_i - 1, j) + old_values(local_i + 1, j) +
+                        old_values(local_i, j - 1) + old_values(local_i, j + 1) +
+                        h_squared * source_term(x, y, problem_case));
+            const double difference = next_value - old_values(local_i, j);
+
+            new_values(local_i, j) = next_value;
+            increment_squared += difference * difference;
+        }
+    }
+
+    return increment_squared;
+}
+
+double solve_local_schwarz(Grid& old_values,
+                           Grid& new_values,
+                           const RowDecomposition& decomposition,
+                           int n,
+                           int local_iterations,
+                           double h_squared,
+                           ProblemCase problem_case) {
+    double total_increment_squared = 0.0;
+
+    for (int local_iteration = 0; local_iteration < local_iterations; ++local_iteration) {
+        new_values.data() = old_values.data();
+        total_increment_squared =
+            sweep_owned_rows(old_values, new_values, decomposition, n, h_squared, problem_case);
+        std::swap(old_values.data(), new_values.data());
+    }
+
+    return total_increment_squared;
+}
+
 }  // namespace
 
 ParallelJacobiResult solve_parallel_jacobi(const ParallelJacobiConfig& config,
@@ -134,6 +186,9 @@ ParallelJacobiResult solve_parallel_jacobi(const ParallelJacobiConfig& config,
     }
     if (config.tolerance < 0.0) {
         throw std::invalid_argument("Tolerance must be non-negative.");
+    }
+    if (config.local_iterations <= 0) {
+        throw std::invalid_argument("Local iterations must be positive.");
     }
 
     int rank = 0;
@@ -157,25 +212,17 @@ ParallelJacobiResult solve_parallel_jacobi(const ParallelJacobiConfig& config,
 
         double local_increment_squared = 0.0;
 
-#pragma omp parallel for reduction(+ : local_increment_squared)
-        for (int local_i = 1; local_i <= local_rows; ++local_i) {
-            const int global_i = static_cast<int>(decomposition.local_begin()) + local_i - 1;
-            if (global_i == 0 || global_i == n - 1) {
-                continue;
-            }
-
-            const double y = static_cast<double>(global_i) * h;
-            for (int j = 1; j < n - 1; ++j) {
-                const double x = static_cast<double>(j) * h;
-                const double next_value =
-                    0.25 * (old_values(local_i - 1, j) + old_values(local_i + 1, j) +
-                            old_values(local_i, j - 1) + old_values(local_i, j + 1) +
-                            h_squared * source_term(x, y, config.problem_case));
-                const double difference = next_value - old_values(local_i, j);
-
-                new_values(local_i, j) = next_value;
-                local_increment_squared += difference * difference;
-            }
+        if (config.local_solver == LocalSolver::Schwarz) {
+            local_increment_squared = solve_local_schwarz(old_values,
+                                                          new_values,
+                                                          decomposition,
+                                                          n,
+                                                          config.local_iterations,
+                                                          h_squared,
+                                                          config.problem_case);
+        } else {
+            local_increment_squared =
+                sweep_owned_rows(old_values, new_values, decomposition, n, h_squared, config.problem_case);
         }
 
         double global_increment_squared = 0.0;
@@ -193,10 +240,13 @@ ParallelJacobiResult solve_parallel_jacobi(const ParallelJacobiConfig& config,
             break;
         }
 
-        std::swap(old_values.data(), new_values.data());
+        if (config.local_solver == LocalSolver::PointJacobi) {
+            std::swap(old_values.data(), new_values.data());
+        }
     }
 
-    const Grid& final_values = result.converged ? new_values : old_values;
+    const Grid& final_values =
+        config.local_solver == LocalSolver::PointJacobi && result.converged ? new_values : old_values;
     result.global_solution = gather_solution(final_values, decomposition, n, rank, size, communicator);
 
     if (rank == 0) {

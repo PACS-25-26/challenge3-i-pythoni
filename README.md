@@ -17,6 +17,7 @@ with Dirichlet boundary conditions. The project includes both a serial solver an
 - MPI parallel solver executable: `laplace_solver`
 - Row-wise MPI domain decomposition with balanced row distribution
 - Ghost row exchange between neighboring MPI ranks
+- Optional Schwarz-type local iteration in the MPI solver
 - Global convergence check based on `MPI_Allreduce` of the global increment norm
 - OpenMP directives on local update and error-computation loops
 - Manufactured sine test case
@@ -98,6 +99,12 @@ Example MPI run:
 mpirun -np 4 ./laplace_solver --n 32 --max-iter 500 --tol 1e-6 --case sine
 ```
 
+Example MPI/OpenMP Schwarz-type run:
+
+```bash
+mpirun -np 4 ./laplace_solver --n 32 --max-iter 500 --tol 1e-6 --case sine --solver schwarz --local-iter 10
+```
+
 Example VTK output:
 
 ```bash
@@ -107,6 +114,6 @@ mpirun -np 4 ./laplace_solver --n 32 --max-iter 500 --tol 1e-6 --case sine --out
 
 ## Current status
 
-The current code base already includes the core serial and MPI Jacobi solvers, manufactured test cases, error computation, OpenMP local parallelism, and VTK output.
+The current code base already includes the core serial and MPI Jacobi solvers, a Schwarz-type block Jacobi option for the MPI solver, manufactured test cases, error computation, OpenMP local parallelism, and VTK output.
 
 The project is not finished yet. In particular, the repository does not yet include a dedicated testing suite, benchmark scripts, or a complete performance study. Those parts can be added later as separate steps.

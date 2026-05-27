@@ -6,6 +6,7 @@ COMMON_SOURCES := \
 	src/Grid.cpp \
 	src/RowDecomposition.cpp \
 	src/Functions.cpp \
+	src/LocalSolver.cpp \
 	src/JacobiSolver.cpp \
 	src/VTKWriter.cpp \
 	src/Error.cpp
