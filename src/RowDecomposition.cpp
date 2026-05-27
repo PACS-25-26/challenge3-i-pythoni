@@ -10,11 +10,19 @@ std::size_t RowDecomposition::global_rows() const {
 }
 
 std::size_t RowDecomposition::local_begin() const {
-    return 0;
+    const std::size_t base_rows = global_rows_ / static_cast<std::size_t>(size_);
+    const std::size_t extra_rows = global_rows_ % static_cast<std::size_t>(size_);
+    const std::size_t rank = static_cast<std::size_t>(rank_);
+
+    return rank * base_rows + (rank < extra_rows ? rank : extra_rows);
 }
 
 std::size_t RowDecomposition::local_end() const {
-    return 0;
+    const std::size_t base_rows = global_rows_ / static_cast<std::size_t>(size_);
+    const std::size_t extra_rows = global_rows_ % static_cast<std::size_t>(size_);
+    const std::size_t rank = static_cast<std::size_t>(rank_);
+
+    return local_begin() + base_rows + (rank < extra_rows ? 1 : 0);
 }
 
 }  // namespace laplace
