@@ -1,17 +1,22 @@
 #pragma once
 
-#include <vector>
+#include "Functions.hpp"
 
 namespace laplace {
 
 class Grid;
-class RowDecomposition;
 
 /**
- * @brief Skeleton for a matrix-free Jacobi solver.
- *
- * The implementation will later manage iterations, convergence checks,
- * and the local solution storage updates.
+ * @brief Summary of a Jacobi solve.
+ */
+struct JacobiResult {
+    int iterations = 0;
+    double final_increment = 0.0;
+    bool converged = false;
+};
+
+/**
+ * @brief Matrix-free Jacobi solver for the 2D Laplace problem.
  */
 class JacobiSolver {
 public:
@@ -23,12 +28,11 @@ public:
     JacobiSolver(int max_iterations = 0, double tolerance = 0.0);
 
     /**
-     * @brief Placeholder solve routine for the future solver.
-     * @param grid Global grid description.
-     * @param decomposition Local row decomposition.
-     * @param values Solution storage.
+     * @brief Solves the problem on a full serial grid.
+     * @param solution Grid storing the computed solution on return.
+     * @param problem_case Manufactured forcing and boundary case.
      */
-    void solve(const Grid& grid, const RowDecomposition& decomposition, std::vector<double>& values) const;
+    JacobiResult solve_serial(Grid& solution, ProblemCase problem_case = ProblemCase::Sine) const;
 
 private:
     int max_iterations_;
