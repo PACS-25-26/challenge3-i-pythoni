@@ -2,33 +2,32 @@
 
 # Challenge 3 — Matrix-free parallel solver for the Laplace equation
 
-This repository contains a C++17 implementation of a matrix-free Jacobi solver for the two-dimensional Laplace/Poisson problem on the unit square
+This repository contains a C++17 implementation of a matrix-free Jacobi solver for the two-dimensional problem
 
 \[
 -\Delta u = f \quad \text{in } \Omega = (0,1)^2
 \]
 
-with Dirichlet boundary conditions. The project includes both a serial solver and a parallel MPI solver based on row-wise domain decomposition, with OpenMP directives on local compute loops.
+with Dirichlet boundary conditions on the unit square. The project includes both a serial solver and an MPI parallel solver with row-wise domain decomposition and OpenMP directives on the local compute loops.
 
-## Implemented features
+## Required Features Implemented
 
-- Matrix-free Jacobi iteration on a structured Cartesian grid
-- Serial solver executable: `laplace_serial`
-- MPI parallel solver executable: `laplace_solver`
-- Row-wise MPI domain decomposition with balanced row distribution
-- Ghost row exchange between neighboring MPI ranks
-- Optional Schwarz-type local iteration in the MPI solver
-- Global convergence check based on `MPI_Allreduce` of the global increment norm
-- OpenMP directives on local update and error-computation loops
-- Manufactured sine test case
-- Manufactured polynomial case with non-homogeneous Dirichlet boundary conditions
-- Discrete L2 error computation against the exact solution
-- VTK output for ParaView-compatible visualization
-- Simple command-line interface for grid size, tolerance, iteration count, problem case, and output file
+- matrix-free Jacobi iteration on a structured Cartesian grid
+- serial executable: `laplace_serial`
+- MPI executable: `laplace_solver`
+- user-selected grid size `n`
+- user-selected manufactured problem case
+- balanced row-wise MPI decomposition
+- ghost-row exchange between neighboring ranks
+- global convergence check based on the reduced increment norm
+- OpenMP directives on the local update and error loops
+- discrete L2 error against the exact manufactured solution
+- VTK export readable by ParaView
+- reproducibility material for a small scalability study under `test/`
 
-## Manufactured problems
+## Manufactured Problems
 
-The main verification case is the sine manufactured solution:
+### Sine verification case
 
 \[
 f(x,y) = 8\pi^2 \sin(2\pi x)\sin(2\pi y)
@@ -38,21 +37,50 @@ f(x,y) = 8\pi^2 \sin(2\pi x)\sin(2\pi y)
 u(x,y) = \sin(2\pi x)\sin(2\pi y)
 \]
 
-The code also includes a polynomial manufactured case to exercise non-homogeneous Dirichlet boundary conditions.
+### Polynomial case
 
-## Repository structure
+The code also includes the manufactured solution
+
+\[
+u(x,y) = x^2 + y^2
+\]
+
+with source term
+
+\[
+f(x,y) = -4
+\]
+
+This case is used to exercise non-homogeneous Dirichlet boundary conditions.
+
+## Extras
+
+### Completed extra
+
+- non-homogeneous Dirichlet boundary conditions through the polynomial manufactured case
+
+### Experimental / partial extra
+
+- Schwarz / block-Jacobi local iteration mode is included for experimentation through `--solver schwarz`
+- this mode is not used in the required benchmark study
+- it should be considered partial rather than a completed extra
+- it is not fully validated, and large `--local-iter` values can produce misleading convergence reports
+
+## Repository Structure
 
 ```text
-include/               Header files for the main project components
+include/               Header files for the main components
 src/                   Source files and executable entry points
-test/                  Placeholder directory for future tests
-test/data/             Placeholder input data directory for tests
-output/                Output directory for generated files
+test/                  Unit tests and reproducibility material
+test/data/             Benchmark CSV files and generated plots
+output/                Output directory for generated VTK files
 Makefile               Build rules for the serial and MPI executables
+RESULT.md              Short submission summary
+hw.info                Hardware report
 Challenge25-26-3.pdf   Assignment specification
 ```
 
-## Build instructions
+## Build Instructions
 
 The project is built with `mpic++` and uses C++17.
 
@@ -71,9 +99,10 @@ Optional targets:
 ```bash
 make serial
 make parallel
+make test
 ```
 
-## Run instructions
+## Run Instructions
 
 Serial help:
 
@@ -99,12 +128,6 @@ Example MPI run:
 mpirun -np 4 ./laplace_solver --n 32 --max-iter 500 --tol 1e-6 --case sine
 ```
 
-Example MPI/OpenMP Schwarz-type run:
-
-```bash
-mpirun -np 4 ./laplace_solver --n 32 --max-iter 500 --tol 1e-6 --case sine --solver schwarz --local-iter 10
-```
-
 Example VTK output:
 
 ```bash
@@ -112,8 +135,23 @@ Example VTK output:
 mpirun -np 4 ./laplace_solver --n 32 --max-iter 500 --tol 1e-6 --case sine --output output/parallel.vtk
 ```
 
-## Current status
+## Reproducibility Material
 
-The current code base already includes the core serial and MPI Jacobi solvers, a Schwarz-type block Jacobi option for the MPI solver, manufactured test cases, error computation, OpenMP local parallelism, and VTK output.
+The `test/` folder contains:
 
-The project is not finished yet. In particular, the repository does not yet include a dedicated testing suite, benchmark scripts, or a complete performance study. Those parts can be added later as separate steps.
+- unit tests for the main numerical and utility components
+- `test/run_scalability.sh` for the small serial/MPI benchmark study
+- `test/plot_results.py` for plotting the benchmark CSV file
+- `test/RESULT.md` for the benchmark discussion
+- `test/hw.info` for the hardware report
+
+The repository keeps a small representative `performance.csv` file and plot set under `test/data/` as reproducible sample outputs. Re-running the benchmark script overwrites those files with the current machine results.
+
+Typical workflow:
+
+```bash
+./test/run_scalability.sh
+python3 test/plot_results.py
+```
+
+More detailed instructions are in `test/README.md`.
