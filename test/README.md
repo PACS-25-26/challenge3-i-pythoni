@@ -5,8 +5,7 @@ This folder collects both the small unit tests used during development and the r
 ## Contents
 
 - `test_*.cpp`: small C++ unit tests for the grid, manufactured functions, Jacobi solver, row decomposition, error computation, and VTK writer.
-- `run_scalability.sh`: benchmark script for the required serial and MPI Jacobi runs.
-- `plot_results.py`: plotting script for the benchmark CSV file.
+- `run_scalability.sh`: benchmark script for the required serial and MPI Jacobi runs; it also writes the CSV file and the SVG plots.
 - `RESULT.md`: short discussion of the benchmark results.
 - `hw.info`: hardware report generated with `lscpu` on this machine.
 - `data/`: benchmark CSV files and generated plots.
@@ -63,17 +62,9 @@ The default settings are intentionally modest because Jacobi converges slowly on
 MAX_ITER=4000 TOL=1e-7 THREADS=1 ./test/run_scalability.sh
 ```
 
-## Generate The Plots
+## Generated Plot Files
 
-From the project root:
-
-```bash
-python3 test/plot_results.py
-```
-
-The plotting script reads `test/data/performance.csv`.
-
-It writes SVG plots in `test/data/`.
+The benchmark script reads and writes `test/data/performance.csv` and also creates SVG plots in `test/data/`.
 
 Typical output files are:
 
@@ -82,7 +73,7 @@ Typical output files are:
 - `test/data/speedup_vs_n.svg`
 - `test/data/l2_error_vs_n.svg`
 
-The plotting script uses only the Python standard library and writes SVG files.
+The benchmark script uses standard shell tools and writes CSV and SVG files directly.
 
 ## Hardware Used
 

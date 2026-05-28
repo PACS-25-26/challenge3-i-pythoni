@@ -4,9 +4,9 @@
 
 This repository contains a C++17 implementation of a matrix-free Jacobi solver for the two-dimensional problem
 
-\[
+$$
 -\Delta u = f \quad \text{in } \Omega = (0,1)^2
-\]
+$$
 
 with Dirichlet boundary conditions on the unit square. The project includes both a serial solver and an MPI parallel solver with row-wise domain decomposition and OpenMP directives on the local compute loops.
 
@@ -29,27 +29,27 @@ with Dirichlet boundary conditions on the unit square. The project includes both
 
 ### Sine verification case
 
-\[
+$$
 f(x,y) = 8\pi^2 \sin(2\pi x)\sin(2\pi y)
-\]
+$$
 
-\[
+$$
 u(x,y) = \sin(2\pi x)\sin(2\pi y)
-\]
+$$
 
 ### Polynomial case
 
 The code also includes the manufactured solution
 
-\[
+$$
 u(x,y) = x^2 + y^2
-\]
+$$
 
 with source term
 
-\[
+$$
 f(x,y) = -4
-\]
+$$
 
 This case is used to exercise non-homogeneous Dirichlet boundary conditions.
 
@@ -140,8 +140,7 @@ mpirun -np 4 ./laplace_solver --n 32 --max-iter 500 --tol 1e-6 --case sine --out
 The `test/` folder contains:
 
 - unit tests for the main numerical and utility components
-- `test/run_scalability.sh` for the small serial/MPI benchmark study
-- `test/plot_results.py` for plotting the benchmark CSV file
+- `test/run_scalability.sh` for the small serial/MPI benchmark study and SVG plot generation
 - `test/RESULT.md` for the benchmark discussion
 - `test/hw.info` for the hardware report
 
@@ -151,7 +150,6 @@ Typical workflow:
 
 ```bash
 ./test/run_scalability.sh
-python3 test/plot_results.py
 ```
 
 More detailed instructions are in `test/README.md`.

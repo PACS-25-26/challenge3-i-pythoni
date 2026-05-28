@@ -13,7 +13,7 @@ The benchmark script uses the standard Jacobi solver on the sine manufactured pr
 
 The study is intentionally small and reproducible on a laptop. Jacobi converges slowly, so the iteration cap matters on the finest grids.
 
-The benchmark outputs in `test/data/` are representative sample results kept in the repository as reproducible reference files. Re-running `test/run_scalability.sh` and `test/plot_results.py` overwrites them.
+The benchmark outputs in `test/data/` are representative sample results kept in the repository as reproducible reference files. Re-running `test/run_scalability.sh` overwrites them.
 
 ## Main Observations
 
@@ -69,4 +69,4 @@ These measurements come from a normal laptop environment. They are useful for re
 - `test/data/speedup_vs_n.svg`: speedup plot
 - `test/data/l2_error_vs_n.svg`: L2-error plot
 
-The plotting script uses only the Python standard library and writes SVG files.
+The benchmark script uses standard shell tools and writes CSV and SVG files directly.

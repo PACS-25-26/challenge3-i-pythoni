@@ -39,4 +39,4 @@ Main observations:
 - `n = 128, 256` hit the `2000`-iteration cap, which is consistent with the slow convergence of Jacobi
 - the `np = 4` MPI runs give a visible speedup for the medium and large cases, with the current sample results reaching about `2.65x` at `n = 128`
 
-The full tables and generated plots are in `test/RESULT.md` and `test/data/`.
+The full tables and generated plots are in `test/RESULT.md` and `test/data/`. The benchmark script uses standard shell tools and writes CSV and SVG files directly.
