@@ -7,7 +7,8 @@ namespace laplace {
  */
 enum class ProblemCase {
     Sine,
-    Polynomial
+    Polynomial,
+    Constant
 };
 
 /**

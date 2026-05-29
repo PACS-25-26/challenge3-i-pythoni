@@ -154,6 +154,28 @@ double sweep_owned_rows(const Grid& old_values,
     return increment_squared;
 }
 
+double compute_owned_difference_squared(const Grid& before_values,
+                                        const Grid& after_values,
+                                        const RowDecomposition& decomposition,
+                                        int n) {
+    double difference_squared = 0.0;
+
+#pragma omp parallel for reduction(+ : difference_squared)
+    for (int local_i = 1; local_i <= static_cast<int>(decomposition.local_rows()); ++local_i) {
+        const int global_i = static_cast<int>(decomposition.local_begin()) + local_i - 1;
+        if (global_i == 0 || global_i == n - 1) {
+            continue;
+        }
+
+        for (int j = 1; j < n - 1; ++j) {
+            const double difference = after_values(local_i, j) - before_values(local_i, j);
+            difference_squared += difference * difference;
+        }
+    }
+
+    return difference_squared;
+}
+
 double solve_local_schwarz(Grid& old_values,
                            Grid& new_values,
                            const RowDecomposition& decomposition,
@@ -161,16 +183,15 @@ double solve_local_schwarz(Grid& old_values,
                            int local_iterations,
                            double h_squared,
                            ProblemCase problem_case) {
-    double total_increment_squared = 0.0;
+    const Grid values_before_local_sweeps = old_values;
 
     for (int local_iteration = 0; local_iteration < local_iterations; ++local_iteration) {
         new_values.data() = old_values.data();
-        total_increment_squared =
-            sweep_owned_rows(old_values, new_values, decomposition, n, h_squared, problem_case);
+        sweep_owned_rows(old_values, new_values, decomposition, n, h_squared, problem_case);
         std::swap(old_values.data(), new_values.data());
     }
 
-    return total_increment_squared;
+    return compute_owned_difference_squared(values_before_local_sweeps, old_values, decomposition, n);
 }
 
 }  // namespace
@@ -225,17 +246,27 @@ ParallelJacobiResult solve_parallel_jacobi(const ParallelJacobiConfig& config,
                 sweep_owned_rows(old_values, new_values, decomposition, n, h_squared, config.problem_case);
         }
 
-        double global_increment_squared = 0.0;
-        MPI_Allreduce(&local_increment_squared,
-                      &global_increment_squared,
+        const double local_increment = h * std::sqrt(local_increment_squared);
+        const int local_converged_flag = local_increment < config.tolerance ? 1 : 0;
+        int all_converged_flag = 0;
+        double global_increment = 0.0;
+
+        MPI_Allreduce(&local_converged_flag,
+                      &all_converged_flag,
+                      1,
+                      MPI_INT,
+                      MPI_MIN,
+                      communicator);
+        MPI_Allreduce(&local_increment,
+                      &global_increment,
                       1,
                       MPI_DOUBLE,
-                      MPI_SUM,
+                      MPI_MAX,
                       communicator);
 
         result.iterations = iteration;
-        result.final_increment = h * std::sqrt(global_increment_squared);
-        result.converged = result.final_increment < config.tolerance;
+        result.final_increment = global_increment;
+        result.converged = all_converged_flag == 1;
         if (result.converged) {
             break;
         }

@@ -20,6 +20,9 @@ ProblemCase parse_problem_case(const char* name) {
     if (value == "poly" || value == "polynomial") {
         return ProblemCase::Polynomial;
     }
+    if (value == "constant") {
+        return ProblemCase::Constant;
+    }
 
     throw std::invalid_argument("Unknown problem case: " + value);
 }
@@ -30,6 +33,8 @@ double source_term(double x, double y, ProblemCase problem_case) {
             return 8.0 * pi * pi * std::sin(2.0 * pi * x) * std::sin(2.0 * pi * y);
         case ProblemCase::Polynomial:
             return -4.0;
+        case ProblemCase::Constant:
+            return 1.0;
     }
 
     return 0.0;
@@ -45,6 +50,8 @@ double exact_solution(double x, double y, ProblemCase problem_case) {
             return std::sin(2.0 * pi * x) * std::sin(2.0 * pi * y);
         case ProblemCase::Polynomial:
             return x * x + y * y;
+        case ProblemCase::Constant:
+            return 0.25 * (x * (1.0 - x) + y * (1.0 - y));
     }
 
     return 0.0;

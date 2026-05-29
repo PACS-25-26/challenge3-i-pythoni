@@ -29,6 +29,19 @@ int main() {
     if (!close(solution(1, 1), 0.5)) return 1;
     if (!close(solution(2, 2), 2.0)) return 1;
 
+    laplace::Grid constant_solution(3, 3, 0.0);
+    const laplace::JacobiResult constant_result =
+        solver.solve_serial(constant_solution, laplace::ProblemCase::Constant);
+
+    if (constant_result.iterations != 1) return 1;
+    if (constant_result.converged) return 1;
+    if (!close(constant_result.final_increment, 0.0625)) return 1;
+    if (!close(constant_solution(0, 1), 0.0625)) return 1;
+    if (!close(constant_solution(1, 0), 0.0625)) return 1;
+    if (!close(constant_solution(1, 1), 0.125)) return 1;
+    if (!close(constant_solution(1, 2), 0.0625)) return 1;
+    if (!close(constant_solution(2, 1), 0.0625)) return 1;
+
     laplace::Grid converged_solution(3, 3, 0.0);
     laplace::JacobiSolver fast_solver(1, 1.0);
     const laplace::JacobiResult converged_result =

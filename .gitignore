@@ -73,3 +73,5 @@ Testing/
 *.vtk
 output/*
 !output/.gitkeep
+test/test_*
+!test/test_*.cpp

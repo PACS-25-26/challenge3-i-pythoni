@@ -25,7 +25,7 @@ struct Options {
 
 void print_help(const std::string& program_name) {
     std::cout << "Usage: " << program_name
-              << " [--n N] [--tol TOL] [--max-iter K] [--case sine|poly]"
+              << " [--n N] [--tol TOL] [--max-iter K] [--case sine|poly|constant]"
               << " [--output FILE] [--test-grid]\n"
               << "Serial Jacobi solver for the 2D Laplace problem.\n";
 }

@@ -19,7 +19,7 @@ with Dirichlet boundary conditions on the unit square. The project includes both
 - user-selected manufactured problem case
 - balanced row-wise MPI decomposition
 - ghost-row exchange between neighboring ranks
-- global convergence check based on the reduced increment norm
+- global convergence check based on local increment checks and MPI reduction
 - OpenMP directives on the local update and error loops
 - discrete L2 error against the exact manufactured solution
 - VTK export readable by ParaView
@@ -53,18 +53,36 @@ $$
 
 This case is used to exercise non-homogeneous Dirichlet boundary conditions.
 
+### Constant case
+
+The code also includes the manufactured solution
+
+$$
+u(x,y) = \frac{1}{4}\left(x(1-x) + y(1-y)\right)
+$$
+
+with source term
+
+$$
+f(x,y) = 1
+$$
+
+This gives another non-homogeneous Dirichlet verification case.
+
 ## Extras
 
 ### Completed extra
 
-- non-homogeneous Dirichlet boundary conditions through the polynomial manufactured case
+- non-homogeneous Dirichlet boundary conditions through the polynomial and constant manufactured cases
 
-### Experimental / partial extra
+### Additional simple variant
 
-- Schwarz / block-Jacobi local iteration mode is included for experimentation through `--solver schwarz`
-- this mode is not used in the required benchmark study
-- it should be considered partial rather than a completed extra
-- it is not fully validated, and large `--local-iter` values can produce misleading convergence reports
+- the required solver for the assignment remains the standard Jacobi method
+- `--solver schwarz` enables a simple one-level Schwarz / block-Jacobi variant
+- each outer iteration exchanges ghost rows, then performs `--local-iter` local Jacobi sweeps with fixed ghost rows
+- the local solver is repeated matrix-free Jacobi sweeps, not LU and not an assembled local matrix solve
+- convergence is measured on the outer Schwarz update, not on the last internal local sweep
+- this mode is not used in the required benchmark study and is validated here with small smoke tests only
 
 ## Repository Structure
 

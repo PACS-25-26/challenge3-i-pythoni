@@ -15,6 +15,8 @@ The study is intentionally small and reproducible on a laptop. Jacobi converges 
 
 The benchmark outputs in `test/data/` are representative sample results kept in the repository as reproducible reference files. Re-running `test/run_scalability.sh` overwrites them.
 
+The required benchmark study in this file is about the standard Jacobi solver. The repository also contains a simple one-level Schwarz / block-Jacobi variant, but that mode is treated only with small smoke tests rather than a separate benchmark table.
+
 ## Main Observations
 
 - The serial solver and the MPI solver give the same iteration counts, convergence status, final increment, and L2 error for the same `n`, as expected from the same Jacobi method.

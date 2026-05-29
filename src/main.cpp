@@ -21,7 +21,7 @@ struct Options {
 
 void print_help(const std::string& program_name) {
     std::cout << "Usage: " << program_name
-              << " [--n N] [--tol TOL] [--max-iter K] [--case sine|poly]"
+              << " [--n N] [--tol TOL] [--max-iter K] [--case sine|poly|constant]"
               << " [--solver jacobi|schwarz] [--local-iter K]"
               << " [--output FILE] [--print-decomposition]\n"
               << "Hybrid MPI/OpenMP solver for the 2D Laplace problem.\n";

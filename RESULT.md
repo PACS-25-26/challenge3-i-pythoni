@@ -15,12 +15,16 @@ This repository contains the completed required serial and MPI Jacobi solver tog
 
 ## Completed Extra
 
-- non-homogeneous Dirichlet boundary conditions through the polynomial manufactured solution
+- non-homogeneous Dirichlet boundary conditions through the polynomial and constant manufactured solutions
 
-## Experimental / Partial Extra
+## Additional Simple Variant
 
-- Schwarz / block-Jacobi local iteration mode is included as an experiment, but it is not advertised as a completed extra and it is not used in the required benchmark study
-- the current implementation is documented cautiously because aggressive local iteration counts can produce misleading convergence reports
+- the required solver remains the standard Jacobi method used in the benchmark study
+- a simple one-level Schwarz / block-Jacobi variant is also implemented through `--solver schwarz`
+- the local solver is repeated matrix-free local Jacobi sweeps with fixed ghost rows, not LU
+- `--local-iter` controls the number of local sweeps per outer Schwarz iteration
+- convergence is measured on the outer Schwarz update, not inside the local relaxation
+- this variant is presented as a small extra with smoke-test validation, not as a separate benchmark study
 
 ## Supporting Material
 
