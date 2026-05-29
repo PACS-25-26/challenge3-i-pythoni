@@ -5,10 +5,11 @@
 namespace laplace {
 
 /**
- * @brief Describes a simple row-wise domain decomposition.
+ * @brief Describes a balanced row-wise MPI decomposition.
  *
- * The local range is represented as [local_begin, local_end), using global
- * zero-based row indices.
+ * The global grid rows are split into contiguous blocks using a quotient and
+ * remainder distribution. The local range is represented as
+ * `[local_begin, local_end)` in global zero-based row indices.
  */
 class RowDecomposition {
 public:
@@ -26,12 +27,12 @@ public:
     std::size_t global_rows() const;
 
     /**
-     * @brief Returns the local starting row index.
+     * @brief Returns the first global row owned by the current rank.
      */
     std::size_t local_begin() const;
 
     /**
-     * @brief Returns the local ending row index.
+     * @brief Returns one past the last global row owned by the current rank.
      */
     std::size_t local_end() const;
 

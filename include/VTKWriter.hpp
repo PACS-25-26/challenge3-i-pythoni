@@ -8,9 +8,10 @@ namespace laplace {
 class Grid;
 
 /**
- * @brief Writes solution fields to VTK files.
+ * @brief Writes scalar solution fields to legacy ASCII VTK files.
  *
- * This utility will later export grid-based results for ParaView.
+ * The output format is `STRUCTURED_POINTS`, which is directly readable by
+ * ParaView for the structured grids used in this project.
  */
 class VTKWriter {
 public:
@@ -19,6 +20,8 @@ public:
      * @param filename Output file path.
      * @param grid Grid metadata.
      * @param values Scalar values on the grid.
+     * @throws std::invalid_argument If the grid is not square or the field size is inconsistent.
+     * @throws std::runtime_error If the file cannot be opened for writing.
      */
     static void write(const std::string& filename, const Grid& grid, const std::vector<double>& values);
 };

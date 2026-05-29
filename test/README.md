@@ -1,107 +1,100 @@
 # Test And Reproducibility Material
 
-This folder collects both the small unit tests used during development and the reproducibility material requested by the assignment.
+This folder contains:
+
+- small unit tests used during development
+- the reproducible scalability script for the required Jacobi study
+- the benchmark CSV file and generated SVG plots
+- a short benchmark summary
+- the hardware report for the current machine
 
 ## Contents
 
-- `test_*.cpp`: small C++ unit tests for the grid, manufactured functions, Jacobi solver, row decomposition, error computation, and VTK writer.
-- `run_scalability.sh`: benchmark script for the required serial and MPI Jacobi runs; it also writes the CSV file and the SVG plots.
-- `RESULT.md`: short discussion of the benchmark results.
-- `hw.info`: hardware report generated with `lscpu` on this machine.
-- `data/`: benchmark CSV files and generated plots.
+- `test_*.cpp`: unit tests for the grid, manufactured functions, serial solver, local solver parsing, row decomposition, error computation, VTK writer, and one MPI-aware parallel solver regression
+- `run_scalability.sh`: shell benchmark script for the standard Jacobi solver
+- `RESULT.md`: concise benchmark summary
+- `hw.info`: hardware information generated on this machine
+- `data/`: benchmark CSV file and SVG plots
 
-## Build The Project
+## Build And Unit Tests
 
 From the project root:
 
 ```bash
 make clean
 make
-```
-
-This builds:
-
-- `laplace_serial`
-- `laplace_solver`
-
-## Run The Unit Tests
-
-From the project root:
-
-```bash
 make test
 ```
 
-## Run The Scalability Study
+The `make test` target builds all unit tests and runs them immediately. The MPI-aware test executable is launched through `mpirun -np 1` so that the parallel solver path is checked in a simple reproducible way.
 
-From the project root:
+## Scalability Script
+
+Run the reproducibility script from the project root with:
 
 ```bash
-./test/run_scalability.sh
+bash test/run_scalability.sh
 ```
 
-Default benchmark settings:
+Default settings:
 
 - problem case: `sine`
 - grid sizes: `16 32 64 128 256`
 - serial runs
 - MPI runs with `np = 1, 2, 4`
-- `OMP_NUM_THREADS=1` by default
+- `OMP_NUM_THREADS=1`
 - tolerance `1e-6`
 - maximum iterations `2000`
 
-The script writes:
+The script is intentionally modest because plain Jacobi converges slowly on fine grids.
 
-- `test/data/performance.csv`
+## Generated Files
 
-Representative benchmark outputs are intentionally kept under `test/data/` as small reproducible sample results. Re-running the script overwrites them with the results from the current machine.
-
-The default settings are intentionally modest because Jacobi converges slowly on the finest grids. You can adjust them without editing the script by setting environment variables before running it, for example:
-
-```bash
-MAX_ITER=4000 TOL=1e-7 THREADS=1 ./test/run_scalability.sh
-```
-
-## Generated Plot Files
-
-The benchmark script reads and writes `test/data/performance.csv` and also creates SVG plots in `test/data/`.
-
-Typical output files are:
+The scalability script overwrites:
 
 - `test/data/performance.csv`
 - `test/data/time_vs_n.svg`
 - `test/data/speedup_vs_n.svg`
 - `test/data/l2_error_vs_n.svg`
 
-The benchmark script uses standard shell tools and writes CSV and SVG files directly.
+The plots are generated directly by shell tools and `awk`. No extra plotting package is required.
 
-## Hardware Used
+## Reading `performance.csv`
+
+The CSV columns are:
+
+- `mode`: `serial` or `mpi`
+- `n`: grid size
+- `processes`: MPI process count
+- `threads`: OpenMP thread count used during the run
+- `iterations`: executed iterations
+- `converged`: `yes` or `no`
+- `final_increment`: reported stopping metric
+- `l2_error`: discrete `L^2` error against the exact manufactured solution
+- `time_seconds`: measured wall-clock time
+
+For MPI runs, `final_increment` is the maximum local increment over all ranks. Global convergence requires all ranks to satisfy their local tolerance check.
+
+## Hardware File
 
 The benchmark in this repository was run on the machine described in `test/hw.info`. A copy is also available at the project root as `hw.info`.
 
-On this machine the hardware report was generated with:
+Typical command used to generate the file:
 
 ```bash
 lscpu > test/hw.info
 ```
 
-If `lscpu` is unavailable, the fallback command is:
+## Notes On Runtime And Interpretation
 
-```bash
-cat /proc/cpuinfo > test/hw.info
-```
+- The required performance study uses the standard Jacobi solver, not the Schwarz mode.
+- Small grids are strongly affected by launch overhead and operating-system noise.
+- The finest cases are slower because Jacobi converges slowly and may hit the iteration cap.
+- Results from another laptop or workstation can differ noticeably even when the implementation is unchanged.
 
-## Notes
+## Small Schwarz Smoke Checks
 
-- The required performance study uses the standard Jacobi solver, not the Schwarz / block-Jacobi variant.
-- The completed extra is the non-homogeneous Dirichlet manufactured cases. The repository also includes a simple one-level Schwarz / block-Jacobi variant that stays matrix-free by using repeated local Jacobi sweeps instead of LU.
-- In Schwarz mode, `--local-iter` is the number of local Jacobi sweeps per outer iteration, and convergence is checked on the outer update after those sweeps.
-- The manufactured-function unit tests cover the non-homogeneous Dirichlet cases, while the benchmark study uses the sine manufactured solution for a clean serial/MPI comparison.
-- Results on a normal laptop may not show ideal parallel speedup. This is consistent with the assignment note: small cases are overhead-dominated, and more meaningful parallel behavior should be expected on a proper cluster.
-
-## Small Schwarz Smoke Tests
-
-These are intentionally small checks for the additional Schwarz / block-Jacobi mode:
+The additional Schwarz / block Jacobi mode is validated with small smoke commands rather than a full benchmark campaign:
 
 ```bash
 mpirun -np 2 ./laplace_solver --n 16 --case sine --solver jacobi --max-iter 10
@@ -110,4 +103,8 @@ mpirun -np 2 ./laplace_solver --n 16 --case sine --solver schwarz --local-iter 5
 mpirun -np 2 ./laplace_solver --n 16 --case sine --solver schwarz --local-iter 500 --max-iter 5 --tol 1e-6
 ```
 
-The last command is meant to check that large local iteration counts do not falsely report convergence from the internal local solver alone. The convergence test is based on the outer Schwarz update.
+These runs check that:
+
+- `local-iter 1` behaves like standard Jacobi
+- moderate local relaxation improves the solution on a small case
+- very large `local-iter` values do not produce false convergence from the internal local sweeps alone
