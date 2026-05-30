@@ -29,16 +29,7 @@ The required solver for the assignment is the standard matrix-free Jacobi method
 
 The domain is discretized with a uniform `n x n` Cartesian grid on `(0,1)^2`. The unknown is stored as dense grid values at the mesh points. Interior nodes are updated with the matrix-free Jacobi stencil
 
-$$
-U_{i,j}^{k+1} =
-\frac{1}{4}\left(
-U_{i-1,j}^{k}
-+ U_{i+1,j}^{k}
-+ U_{i,j-1}^{k}
-+ U_{i,j+1}^{k}
-+ h^2 f_{i,j}
-\right).
-$$
+$$ U_{i,j}^{k+1} = \frac{1}{4}\left(U_{i-1,j}^{k} + U_{i+1,j}^{k} + U_{i,j-1}^{k} + U_{i,j+1}^{k} + h^2 f_{i,j}\right). $$
 
 No global matrix is assembled anywhere in the code. Boundary values are set directly from the selected manufactured solution, and only interior nodes are updated.
 
