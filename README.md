@@ -18,7 +18,7 @@ The project includes:
 
 ## Project Goal
 
-The required solver for the assignment is the standard matrix-free Jacobi method on a structured Cartesian grid. The implementation is intentionally simple and suitable for a Master's course project:
+The required solver for the assignment is the standard matrix-free Jacobi method on a structured Cartesian grid:
 
 - no global matrix is assembled
 - the update is applied directly through the five-point stencil
