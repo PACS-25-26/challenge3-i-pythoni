@@ -33,7 +33,7 @@ $$ U_{i,j}^{k+1} = \frac{1}{4}\left(U_{i-1,j}^{k} + U_{i+1,j}^{k} + U_{i,j-1}^{k
 
 No global matrix is assembled anywhere in the code. Boundary values are set directly from the selected manufactured solution, and only interior nodes are updated.
 
-The serial solver performs one Jacobi sweep per iteration. The MPI solver supports the same point Jacobi method and an additional simple Schwarz / block Jacobi variant based on repeated local Jacobi sweeps.
+The serial solver performs one Jacobi sweep per iteration. 
 
 ## Implemented Problem Cases
 
